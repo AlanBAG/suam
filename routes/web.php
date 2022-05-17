@@ -17,9 +17,13 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/inicio', function(){
+    return view('inicio');
+});
+
 Route::resource('alumnos', 'App\Http\Controllers\AlumnoController');
-Route::resource('cursos', 'App\Http\Controllers\AlumnoController');
-Route::resource('lista', 'App\Http\Controllers\AlumnoController');
+Route::resource('cursos', 'App\Http\Controllers\CursoController');
+Route::resource('lista', 'App\Http\Controllers\ListaController');
 
 Route::middleware([
     'auth:sanctum',
