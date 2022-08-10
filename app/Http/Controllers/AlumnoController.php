@@ -3,144 +3,251 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Alumno;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\Response;
+
+use App\Models\Alumno;
+use App\Models\MateriaInscrita;
+use App\Models\Lista;
+use App\Models\User;
 
 class AlumnoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    public function createAlumno()
     {
-        $alumnos = Alumno::all();
-        return view('alumno.index')->with('alumnos', $alumnos);
+        return view('alumno.createAlumno');
     }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function listarAlumnos()
     {
-        return view('alumno.create');
+        $alumno = Alumno::orderBy('apellidoPaterno', 'asc')->get();
+        return view('alumno.listadoAlumnos', array(
+            'alumnos' => $alumno
+        ));
     }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
+    public function saveAlumno(Request $request)
     {
-        $alumnos = new Alumno();
+        //Validar Formulario
+        $validateData = $this->validate($request, [
+            'nombre' => 'required',
+            'apellidoPaterno' => 'required',
+            'nacimiento_anio' => 'required',
+            'nacimiento_mes' => 'required',
+            'nacimiento_dia' => 'required',
+            'domicilio' => 'required',
+            'colonia' => 'required',
+            'sector' => 'required',
+            'cp' => 'required',
+            'municipio' => 'required',
+            'telCelular' => 'required',
+            'email' => 'required',
+            'escolaridad' => 'required',
+            'estado' => 'required',
+            'estadoCivil' => 'required',
+            'contacto' => 'required',
+            'jubilado' => 'required',
 
-        $alumnos->nombre = $request->get('nombre');
-        $alumnos->apellidoPaterno = $request->get('apellidoPaterno');
-        $alumnos->apellidoMaterno = $request->get('apellidoMaterno');
-        $alumnos->fechaNacimiento = $request->get('fechaNacimiento');
-        $alumnos->estadoCivil = $request->get('estadoCivil');
-        $alumnos->domicilio = $request->get('domicilio');
-        $alumnos->colonia = $request->get('colonia');
-        $alumnos->sector = $request->get('sector');
-        $alumnos->cp = $request->get('cp');
-        $alumnos->estado = $request->get('estado');
-        $alumnos->municipio = $request->get('municipio');
-        $alumnos->ine = $request->get('ine');
-        $alumnos->telCasa = $request->get('telCasa');
-        $alumnos->telCelular = $request->get('telCelular');
-        $alumnos->email = $request->get('email');
-        $alumnos->escolaridad = $request->get('escolaridad');
-        $alumnos->contacto = $request->get('contacto');
-        $alumnos->jubilado = $request->get('jubilado');
-        $alumnos->institucionJubilacion = $request->get('institucionJubilacion');
-        $alumnos->equipo = $request->get('equipo');
-        $alumnos->internet = $request->get('internet');
+        ]);
 
-        $alumnos->save();
 
-        return redirect('/alumnos');
-    }
+        $alumno = new Alumno();
+        $alumno->nombre = $request->input('nombre');
+        $alumno->apellidoPaterno = $request->input('apellidoPaterno');
+        $alumno->apellidoMaterno = $request->input('apellidoMaterno');
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
+        $fechaNacimiento = $request->input('nacimiento_anio');
+        $fechaNacimiento .= '-' . $request->input('nacimiento_mes');
+        $fechaNacimiento .= '-' . $request->input('nacimiento_dia');
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        $alumno = Alumno::find($id);
+        $alumno->fechaNacimiento = $fechaNacimiento;
+        $alumno->domicilio = $request->input('domicilio');
+        $alumno->colonia = $request->input('colonia');
+        $alumno->sector = $request->input('sector');
+        $alumno->cp = $request->input('cp');
+        $alumno->municipio = $request->input('municipio');
+        $alumno->estado = $request->input('estado');
+        $alumno->ine = $request->input('ine');
+        if (empty($request->input('institucionJubilacion'))) {
+            $alumno->telCasa = "No Especificado";
+        } else {
+            $alumno->telCasa = $request->input('telCasa');
+        }
 
-        return view('alumno.edit')->with('alumno', $alumno);
-    }
+        $alumno->telCelular = $request->input('telCelular');
+        $alumno->email = $request->input('email');
+        $alumno->escolaridad = $request->input('escolaridad');
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        $alumno = Alumno::find($id);
-
-        $alumno->nombre = $request->get('nombre');
-        $alumno->apellidoPaterno = $request->get('apellidoPaterno');
-        $alumno->apellidoMaterno = $request->get('apellidoMaterno');
-        $alumno->fechaNacimiento = $request->get('fechaNacimiento');
-        $alumno->estadoCivil = $request->get('estadoCivil');
-        $alumno->domicilio = $request->get('domicilio');
-        $alumno->colonia = $request->get('colonia');
-        $alumno->sector = $request->get('sector');
-        $alumno->cp = $request->get('cp');
-        $alumno->estado = $request->get('estado');
-        $alumno->municipio = $request->get('municipio');
-        $alumno->ine = $request->get('ine');
-        $alumno->telCasa = $request->get('telCasa');
-        $alumno->telCelular = $request->get('telCelular');
-        $alumno->email = $request->get('email');
-        $alumno->escolaridad = $request->get('escolaridad');
-        $alumno->contacto = $request->get('contacto');
-        $alumno->jubilado = $request->get('jubilado');
-        $alumno->institucionJubilacion = $request->get('institucionJubilacion');
-        $alumno->equipo = $request->get('equipo');
-        $alumno->internet = $request->get('internet');
-
+        $alumno->estadoCivil = $request->input('estadoCivil');
+        $alumno->contacto = $request->input('contacto');
+        $alumno->jubilado = $request->input('jubilado');
+        if (empty($request->input('institucionJubilacion'))) {
+            $alumno->institucionJubilacion = "No aplica";
+        } else {
+            $alumno->institucionJubilacion = $request->input('institucionJubilacion');
+        }
+        $alumno->equipo = $request->input('equipo');
+        $alumno->internet = $request->input('internet');
+        //Subida de la imagen
+        $image = $request->file('ine');
+        if ($image) {
+            $image_path = time() . $image->getClientOriginalName();
+            \Storage::disk('images')->put($image_path, \File::get($image));
+            $alumno->ine = $image_path;
+        }
         $alumno->save();
 
-        return redirect('/alumnos');
+
+
+
+
+
+        $emailLimpio = $request->input('apellidoPaterno');
+        $no_permitidas = array("á", "é", "í", "ó", "ú", "Á", "É", "Í", "Ó", "Ú", "ñ", "À", "Ã", "Ì", "Ò", "Ù", "Ã™", "Ã ", "Ã¨", "Ã¬", "Ã²", "Ã¹", "ç", "Ç", "Ã¢", "ê", "Ã®", "Ã´", "Ã»", "Ã‚", "ÃŠ", "ÃŽ", "Ã”", "Ã›", "ü", "Ã¶", "Ã–", "Ã¯", "Ã¤", "«", "Ò", "Ã", "Ã„", "Ã‹");
+        $permitidas = array("a", "e", "i", "o", "u", "A", "E", "I", "O", "U", "n", "N", "A", "E", "I", "O", "U", "a", "e", "i", "o", "u", "c", "C", "a", "e", "i", "o", "u", "A", "E", "I", "O", "U", "u", "o", "O", "i", "a", "e", "U", "I", "A", "E");
+        $texto = str_replace($no_permitidas, $permitidas, $emailLimpio);
+        $emailLimpio = $texto;
+        $passwordLimpio = $request->input('apellidoPaterno');
+        $no_permitidas2 = array("á", "é", "í", "ó", "ú", "Á", "É", "Í", "Ó", "Ú", "ñ", "À", "Ã", "Ì", "Ò", "Ù", "Ã™", "Ã ", "Ã¨", "Ã¬", "Ã²", "Ã¹", "ç", "Ç", "Ã¢", "ê", "Ã®", "Ã´", "Ã»", "Ã‚", "ÃŠ", "ÃŽ", "Ã”", "Ã›", "ü", "Ã¶", "Ã–", "Ã¯", "Ã¤", "«", "Ò", "Ã", "Ã„", "Ã‹");
+        $permitidas2 = array("a", "e", "i", "o", "u", "A", "E", "I", "O", "U", "n", "N", "A", "E", "I", "O", "U", "a", "e", "i", "o", "u", "c", "C", "a", "e", "i", "o", "u", "A", "E", "I", "O", "U", "u", "o", "O", "i", "a", "e", "U", "I", "A", "E");
+        $texto2 = str_replace($no_permitidas2, $permitidas2, $passwordLimpio);
+        $passwordLimpio = $texto2;
+        $loginBusqueda = strtolower($emailLimpio) . $request->input('nacimiento_anio');
+
+
+        $userExistente = User::where('email', '=', $loginBusqueda)->count();
+        $user = new User();
+        $user->name = $request->input('nombre') . " " . $request->input('apellidoPaterno') . " " . $request->input('apellidoMaterno');
+        if ($userExistente == 0) {
+            $loginFinal = strtolower($emailLimpio) . $request->input('nacimiento_anio');
+        } else {
+            $loginFinal = strtolower($emailLimpio) . $request->input('nacimiento_dia') . "-" . $request->input('nacimiento_mes') . "-" . $request->input('nacimiento_anio');
+        }
+        $user->email = $loginFinal;
+        $user->password = bcrypt(strtolower($passwordLimpio) . $request->input('nacimiento_dia'));
+        $alumno = Alumno::all();
+        $user->IdAlumno = $alumno->last()->id;
+        if (Auth::check()) {
+            $user->surname = 'Admin';
+        } else {
+            $user->surname = 'Web';
+        }
+        $user->role = 'alumno';
+        $user->save();
+
+        if (Auth::check()) {
+            return redirect()->route('home')->with(array(
+                "message" => "Cerrar sesión e ingresar con los siguientes datos."
+                    . " ------------------- NOMBRE DE USUARIO: " . $loginFinal
+                    . " ------------------- CONTRASEÑA: " . strtolower($passwordLimpio) . $request->input('nacimiento_dia')
+            ));
+        } else {
+            return redirect()->route('login')->with(array(
+                "message" => "La información se ha registrado correctamente. Ahora puede iniciar sesión y agendar materias. "
+                    . " ------------------- NOMBRE DE USUARIO: " . $loginFinal
+                    . " ------------------- CONTRASEÑA: " . strtolower($passwordLimpio) . $request->input('nacimiento_dia')
+            ));
+        }
     }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
+    public function editarAlumno($alumno_id)
     {
-        $alumno = Alumno::find($id)->delete();
-        $alumno->activo = '0';
-        $alumno->save();
+        $alumno = Alumno::findOrFail($alumno_id);
+        return view('alumno.editAlumno', array('alumno' => $alumno));
+    }
+    public function delete($alumno_id)
+    {
+        $alumno = Alumno::find($alumno_id);
+        $lista = Lista::where('IdAlumno', '=', $alumno_id);
+        if ($alumno) {
+            //Eliminar entradas en las listas
+            $lista->delete();
+            //Eliminar el curso
+            $alumno->delete();
+            $message = array('message' => 'Alumno Eliminado');
+        } else {
+            $message = array('message' => 'El Alumno no existe');
+        }
+        return redirect('/listadoAlumnos')->with($message);
+    }
+    public function getImagen($filename)
+    {
+        $file = \Storage::disk('images')->get($filename);
+        return new Response($file, 200);
+    }
+    public function update($alumno_id, Request $request)
+    {
+        /*  $validateData = $this->validate($request, [
+            'nombre' => 'required',
+            'apellidoPaterno' => 'required',
+            'domicilio' => 'required',
+            'colonia' => 'required',
+            'sector' => 'required',
+            'cp' => 'required',
+            'municipio' => 'required',
+            'telCelular' => 'required',
+            'email' => 'required',
+            'escolaridad' => 'required',
+            'estadoCivil' => 'required',
+            'contacto' => 'required',
+            'jubilado' => 'required',
+        ]);*/
+        $alumno = Alumno::findOrFail($alumno_id);
+        $alumno->nombre = $request->input('nombre');
+        $alumno->apellidoPaterno = $request->input('apellidoPaterno');
+        $alumno->apellidoMaterno = $request->input('apellidoMaterno');
 
-        return redirect()->route('alumnos.index')
-            ->with('success', 'Alumno eliminado correctamente');
+        $fechaNacimiento = $request->input('nacimiento_anio');
+        $fechaNacimiento .= '-' . $request->input('nacimiento_mes');
+        $fechaNacimiento .= '-' . $request->input('nacimiento_dia');
+
+        $alumno->fechaNacimiento = $fechaNacimiento;
+        $alumno->domicilio = $request->input('domicilio');
+        $alumno->colonia = $request->input('colonia');
+        $alumno->sector = $request->input('sector');
+        $alumno->cp = $request->input('cp');
+        $alumno->municipio = $request->input('municipio');
+        $alumno->estado = $request->input('estado');
+        $alumno->ine = $request->input('ine');
+        if (empty($request->input('institucionJubilacion'))) {
+            $alumno->telCasa = "No Especificado";
+        } else {
+            $alumno->telCasa = $request->input('telCasa');
+        }
+
+        $alumno->telCelular = $request->input('telCelular');
+        $alumno->email = $request->input('email');
+        $alumno->escolaridad = $request->input('escolaridad');
+
+        $alumno->estadoCivil = $request->input('estadoCivil');
+        $alumno->contacto = $request->input('contacto');
+        $alumno->jubilado = $request->input('jubilado');
+        if (empty($request->input('institucionJubilacion'))) {
+            $alumno->institucionJubilacion = "No aplica";
+        } else {
+            $alumno->institucionJubilacion = $request->input('institucionJubilacion');
+        }
+        $alumno->equipo = $request->input('equipo');
+        $alumno->internet = $request->input('internet');
+        //Subida de la imagen
+        $image = $request->file('ine');
+        if ($image) {
+            $image_path = time() . $image->getClientOriginalName();
+            \Storage::disk('images')->put($image_path, \File::get($image));
+            $alumno->ine = $image_path;
+        }
+        $alumno->update();
+        return redirect()->route('listadoAlumnos')->with(array('message' => 'El registro se actualizó correctamnte'));
+    }
+    public function kardexAlumno($alumno_id)
+    {
+        $alumno = Alumno::findOrFail($alumno_id);
+        $materias = MateriaInscrita::where("IdAlumno", "=", $alumno_id)->get();
+        $user1 = User::where('IdAlumno', '=', $alumno_id)->first();
+        return view('alumno.kardexAlumno', array(
+            'alumno' => $alumno,
+            'materias' => $materias,
+            'user1' => $user1
+        ));
     }
 }

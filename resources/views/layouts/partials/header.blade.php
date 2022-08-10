@@ -1,45 +1,66 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="{{ route('home') }}">SUAM</a>
+<div class="sidebar" data-color="orange">
+    <!--
+      Tip 1: You can change the color of the sidebar using: data-color="blue | green | orange | red | yellow"
+  -->
+    <div class="logo">
+        <a href="#" class="simple-text logo-mini">
+            CTA
+        </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <!-- Left Side Of Navbar -->
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('alumnos.index') }}">Listado de Alumnos</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="">Cursos 2022A</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('alumnos.create') }}">Capturar Alumno</a>
-                </li>
-
-                <li class="nav-item dropdown">
-                    <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button"
-                        data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                        {{ Auth::user()->name }}
-                    </a>
-
-                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item" href="{{ route('logout') }}" onclick="event.preventDefault();
-                                    document.getElementById('logout-form').submit();">
-                            {{ __('Logout') }}
-                        </a>
-
-                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
-                            @csrf
-                        </form>
-                    </div>
-                </li>
-            </ul>
-
-        </div>
+        <a href="#" class="simple-text logo-normal">
+            SUAM
+        </a>
     </div>
-</nav>
+
+    <div class="sidebar-wrapper" id="sidebar-wrapper">
+        <ul class="nav">
+            &nbsp;@if (Auth::user()->role == 'super' || Auth::user()->role == 'admin')
+                <li class="active">
+                    <a href="{{ route('home') }}">
+
+                        <i class="now-ui-icons location_bookmark"></i>
+
+                        <p>Inicio</p>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{{ route('listadoAlumnos') }}">
+
+                        <i class="now-ui-icons business_badge"></i>
+
+                        <p>Listado de Alumnos</p>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{{ route('listadoCursos', ['ciclo' => '2022A']) }}">
+
+                        <i class="now-ui-icons location_map-big"></i>
+
+                        <p>Cursos</p>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{{ route('createAlumno') }}">
+
+                        <i class="now-ui-icons files_paper"></i>
+
+                        <p>Capturar Alumno</p>
+                    </a>
+                </li>
+            @endif
+            <li>
+                <a href="{{ route('logout') }}"onclick="event.preventDefault();
+                    document.getElementById('logout-form').submit();"
+                    style="font-size: 12px">
+                    <i class="now-ui-icons users_single-02"></i>Cerrar sesión</a>
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                    @csrf
+                </form>
+
+            </li>
+        </ul>
+    </div>
+</div>
